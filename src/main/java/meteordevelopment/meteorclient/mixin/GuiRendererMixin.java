@@ -10,6 +10,7 @@ import meteordevelopment.meteorclient.MeteorClient;
 import meteordevelopment.meteorclient.events.render.Render2DEvent;
 import meteordevelopment.meteorclient.gui.WidgetScreen;
 import meteordevelopment.meteorclient.systems.hud.screens.HudEditorScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import meteordevelopment.meteorclient.utils.Utils;
 import meteordevelopment.meteorclient.utils.render.MeteorMcGuiRenderer;
 import net.minecraft.client.Minecraft;
@@ -69,7 +70,7 @@ public abstract class GuiRendererMixin {
 
         RenderSystem.getDevice().createCommandEncoder().clearDepthTexture(mc.getMainRenderTarget().getDepthTexture(), 1.0);
 
-        if (mc.screen == null || mc.screen instanceof WidgetScreen) {
+        if (mc.screen == null || mc.screen instanceof WidgetScreen || mc.screen instanceof AbstractContainerScreen) {
             meteor$render2D(mc);
         }
 

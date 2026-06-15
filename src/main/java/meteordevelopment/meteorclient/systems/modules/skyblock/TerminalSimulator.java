@@ -23,7 +23,6 @@ public class TerminalSimulator extends Module {
     public void onActivate() {
         simScreenOpen = false;
         clickCount = 0;
-        TerminalUtils.isSimulating = true;
         if (mc.screen == null) {
             mc.setScreen(new TermStartGUI());
         }

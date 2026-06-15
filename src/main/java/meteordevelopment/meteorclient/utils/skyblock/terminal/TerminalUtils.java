@@ -5,6 +5,7 @@ import meteordevelopment.meteorclient.events.game.OpenScreenEvent;
 import meteordevelopment.meteorclient.events.packets.ContainerSlotUpdateEvent;
 import meteordevelopment.meteorclient.events.packets.InventoryEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
+import meteordevelopment.meteorclient.utils.PostInit;
 import meteordevelopment.meteorclient.utils.skyblock.terminal.handlers.TerminalHandler;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.Minecraft;
@@ -24,6 +25,7 @@ public class TerminalUtils {
     private static TerminalHandler currentTerm = null;
     private static TerminalHandler lastTermOpened = null;
     private static long lastClickTime = 0L;
+    private static int slotCount = 0;
 
     public static TerminalHandler getCurrentTerm() {
         return currentTerm;
@@ -33,6 +35,7 @@ public class TerminalUtils {
         return lastTermOpened;
     }
 
+    @PostInit
     public static void init() {
         MeteorClient.EVENT_BUS.subscribe(new TerminalUtils());
     }
@@ -57,10 +60,8 @@ public class TerminalUtils {
                     currentTerm = handler;
                     MeteorClient.EVENT_BUS.post(TerminalEvent.Open.get(handler));
                     lastTermOpened = handler;
-                }
-                handler.openScreen();
-
-                if (isSimulating) {
+                    handler.openScreen();
+                    slotCount = 0;
                     populateHandlerFromContainer(containerScreen, type.windowSize);
                 }
             }
@@ -72,9 +73,8 @@ public class TerminalUtils {
         var menu = containerScreen.getMenu();
         if (menu != null && menu.slots.size() >= windowSize) {
             var items = menu.slots.subList(0, windowSize).stream().map(s -> s.getItem()).toList();
-            for (int i = 0; i < items.size(); i++) {
-                currentTerm.updateSlot(items, i);
-            }
+            slotCount = windowSize;
+            currentTerm.updateSlot(items, windowSize - 1);
         }
     }
 
@@ -88,7 +88,12 @@ public class TerminalUtils {
             if (slot >= 0 && slot < currentTerm.type.windowSize) {
                 var menu = containerScreen.getMenu();
                 if (menu.slots.size() >= currentTerm.type.windowSize) {
-                    currentTerm.updateSlot(menu.slots.subList(0, currentTerm.type.windowSize).stream().map(s -> s.getItem()).toList(), slot);
+                    var items = menu.slots.subList(0, currentTerm.type.windowSize).stream().map(s -> s.getItem()).toList();
+                    slotCount++;
+                    String typeName = currentTerm.type.name();
+                    if (typeName.equals("MELODY") || slotCount >= currentTerm.type.windowSize) {
+                        currentTerm.updateSlot(items, slot);
+                    }
                 }
             }
         }
@@ -98,9 +103,15 @@ public class TerminalUtils {
     private void onInventory(InventoryEvent event) {
         if (isSimulating) return;
         if (currentTerm == null) return;
-        if (event.packet.containerId() == (mc.player != null ? mc.player.containerMenu.containerId : -1)) return;
-        if (mc.screen instanceof AbstractContainerScreen<?>) {
+        if (event.packet.containerId() != (mc.player != null ? mc.player.containerMenu.containerId : -1)) return;
+        if (mc.screen instanceof AbstractContainerScreen<?> containerScreen) {
             currentTerm.isClicked = false;
+            var menu = containerScreen.getMenu();
+            if (menu.slots.size() >= currentTerm.type.windowSize) {
+                var items = menu.slots.subList(0, currentTerm.type.windowSize).stream().map(s -> s.getItem()).toList();
+                slotCount = currentTerm.type.windowSize;
+                currentTerm.updateSlot(items, currentTerm.type.windowSize - 1);
+            }
         }
     }
 

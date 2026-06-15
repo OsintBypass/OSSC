@@ -5,18 +5,18 @@ import meteordevelopment.meteorclient.utils.skyblock.terminal.TerminalTypes;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.StainedGlassPaneBlock;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class RubixHandler extends TerminalHandler {
-    private static final List<DyeColor> RUBIX_COLOR_ORDER = List.of(
+    private static final List<DyeColor> COLOR_ORDER = List.of(
         DyeColor.ORANGE, DyeColor.YELLOW, DyeColor.GREEN, DyeColor.BLUE, DyeColor.RED
     );
+    private static final List<Integer> VALID_SLOTS = List.of(12, 13, 14, 21, 22, 23, 30, 31, 32);
 
-    private DyeColor lastRubixSolution = null;
+    private int lastGoal = -1;
 
     public RubixHandler() {
         super(TerminalTypes.RUBIX);
@@ -24,66 +24,66 @@ public class RubixHandler extends TerminalHandler {
 
     @Override
     public List<Integer> solve(List<ItemStack> items) {
-        List<ItemStack> panes = items.stream()
-            .filter(item -> {
-                if (item.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof StainedGlassPaneBlock pane) {
-                    return pane.getColor() != DyeColor.BLACK;
-                }
-                return false;
-            })
-            .toList();
+        int[] slots = new int[9];
+        int[] colors = new int[9];
+        int count = 0;
 
-        List<Integer> best = IntStream.range(0, 100).boxed().collect(Collectors.toList());
+        for (int i = 0; i < items.size(); i++) {
+            if (!VALID_SLOTS.contains(i)) continue;
+            ItemStack s = items.get(i);
+            if (s.getItem() == Items.AIR) continue;
+            if (!(s.getItem() instanceof BlockItem bi)) continue;
+            if (!(bi.getBlock() instanceof StainedGlassPaneBlock p)) continue;
+            if (p.getColor() == DyeColor.BLACK) continue;
+            int idx = COLOR_ORDER.indexOf(p.getColor());
+            if (idx == -1) continue;
+            slots[count] = i;
+            colors[count] = idx;
+            count++;
+        }
 
-        if (lastRubixSolution != null) {
-            int lastIndex = RUBIX_COLOR_ORDER.indexOf(lastRubixSolution);
-            best = buildSolution(panes, lastIndex, items);
-        } else {
-            for (int goalIndex = 0; goalIndex < RUBIX_COLOR_ORDER.size(); goalIndex++) {
-                List<Integer> candidate = buildSolution(panes, goalIndex, items);
-                if (getRealSize(candidate) < getRealSize(best)) {
-                    best = candidate;
-                    lastRubixSolution = RUBIX_COLOR_ORDER.get(goalIndex);
-                }
+        if (count == 0) return List.of();
+
+        if (lastGoal != -1) {
+            return computeForTarget(slots, colors, count, lastGoal);
+        }
+
+        int bestGoal = 0;
+        int bestSize = Integer.MAX_VALUE;
+        List<Integer> best = List.of();
+        for (int t = 0; t < 5; t++) {
+            List<Integer> temp = computeForTarget(slots, colors, count, t);
+            int realSize = getRealSize(temp);
+            if (realSize < bestSize) {
+                bestSize = realSize;
+                best = temp;
+                bestGoal = t;
             }
         }
 
+        lastGoal = bestGoal;
         return best;
     }
 
-    private List<Integer> buildSolution(List<ItemStack> panes, int goalIndex, List<ItemStack> allItems) {
+    private List<Integer> computeForTarget(int[] slots, int[] colors, int count, int goal) {
         List<Integer> result = new ArrayList<>();
-        for (ItemStack pane : panes) {
-            if (pane.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof StainedGlassPaneBlock paneBlock) {
-                int paneIdx = RUBIX_COLOR_ORDER.indexOf(paneBlock.getColor());
-                if (paneIdx != goalIndex) {
-                    int totalColors = RUBIX_COLOR_ORDER.size();
-                    int forward = (goalIndex - paneIdx + totalColors) % totalColors;
-                    int reverse = (paneIdx - goalIndex + totalColors) % totalColors;
-
-                    if (forward <= reverse) {
-                        for (int i = 0; i < forward; i++) {
-                            int idx = allItems.indexOf(pane);
-                            if (idx != -1) result.add(idx);
-                        }
-                    } else {
-                        int enc = totalColors - reverse;
-                        for (int i = 0; i < enc; i++) {
-                            int idx = allItems.indexOf(pane);
-                            if (idx != -1) result.add(idx);
-                        }
-                    }
-                }
-            }
+        for (int i = 0; i < count; i++) {
+            if (colors[i] == goal) continue;
+            int d = dist(colors[i], goal);
+            for (int c = 0; c < d; c++) result.add(slots[i]);
         }
         return result;
     }
 
-    private int getRealSize(List<Integer> list) {
+    private static int dist(int pane, int target) {
+        return pane > target ? (target + 5) - pane : target - pane;
+    }
+
+    private static int getRealSize(List<Integer> list) {
         int size = 0;
-        for (int pane : new HashSet<>(list)) {
-            int count = Collections.frequency(list, pane);
-            size += count >= 3 ? 5 - count : count;
+        for (int slot : new HashSet<>(list)) {
+            int freq = Collections.frequency(list, slot);
+            size += freq >= 3 ? 5 - freq : freq;
         }
         return size;
     }

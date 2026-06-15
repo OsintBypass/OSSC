@@ -6,6 +6,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class NumbersHandler extends TerminalHandler {
     public NumbersHandler() {
@@ -14,9 +15,9 @@ public class NumbersHandler extends TerminalHandler {
 
     @Override
     public List<Integer> solve(List<ItemStack> items) {
-        return items.stream()
-            .filter(item -> item.getItem() == Items.RED_STAINED_GLASS_PANE)
-            .map(items::indexOf)
+        return IntStream.range(0, items.size())
+            .filter(i -> items.get(i).getItem() == Items.RED_STAINED_GLASS_PANE)
+            .boxed()
             .sorted(java.util.Comparator.comparingInt(i -> items.get(i).getCount()))
             .toList();
     }

@@ -25,10 +25,8 @@ public abstract class TerminalHandler {
 
     public void updateSlot(List<ItemStack> items, int slotIndex) {
         if (slotIndex < 0 || slotIndex >= type.windowSize) return;
-        if (canSolve(items, slotIndex)) {
-            solution.clear();
-            solution.addAll(solve(items));
-        }
+        solution.clear();
+        solution.addAll(solve(items));
     }
 
     public void openScreen() {
@@ -41,10 +39,6 @@ public abstract class TerminalHandler {
     public Color getSlotColor(int slotIndex) {
         if (!solution.contains(slotIndex)) return null;
         return renderSlot(slotIndex);
-    }
-
-    protected boolean canSolve(List<ItemStack> items, int currentIndex) {
-        return currentIndex == type.windowSize - 1;
     }
 
     public void simulateClick(int slotIndex, int button) {

@@ -41,6 +41,14 @@ public class TermStartGUI extends Screen {
             .bounds(width / 2 - 100, y + 10, 200, 20).build());
     }
 
+    @Override
+    public void onClose() {
+        TerminalUtils.isSimulating = false;
+        TerminalSimulator sim = Modules.get().get(TerminalSimulator.class);
+        if (sim != null) sim.onSimScreenClose();
+        super.onClose();
+    }
+
     private void openSim(TerminalTypes type) {
         TermSimGUI gui = new TermSimGUI(type.windowSize, Component.literal(type.termName));
         gui.fillItems(SimUtils.generateItems(type));

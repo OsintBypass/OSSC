@@ -1,6 +1,5 @@
 package meteordevelopment.meteorclient.systems.modules.skyblock;
 
-import meteordevelopment.meteorclient.events.game.OpenScreenEvent;
 import meteordevelopment.meteorclient.events.render.Render2DEvent;
 import meteordevelopment.meteorclient.gui.GuiTheme;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
@@ -13,9 +12,11 @@ import meteordevelopment.meteorclient.mixin.AbstractContainerScreenAccessor;
 import meteordevelopment.meteorclient.renderer.text.VanillaTextRenderer;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
+import meteordevelopment.meteorclient.utils.skyblock.terminal.TerminalTypes;
 import meteordevelopment.meteorclient.utils.skyblock.terminal.TerminalUtils;
 import meteordevelopment.meteorclient.utils.skyblock.terminal.handlers.TerminalHandler;
 import meteordevelopment.orbit.EventHandler;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 
 public class TerminalSolver extends Module {
@@ -176,29 +177,8 @@ public class TerminalSolver extends Module {
         .defaultValue(new SettingColor(97, 97, 97)).build()
     );
 
-    private AbstractContainerScreen<?> currentScreen;
-
     public TerminalSolver() {
         super(Categories.Skyblock, "terminal-solver", "Renders solutions for dungeon terminals.");
-    }
-
-    @Override
-    public void onActivate() {
-        currentScreen = null;
-    }
-
-    @Override
-    public void onDeactivate() {
-        currentScreen = null;
-    }
-
-    @EventHandler
-    private void onOpenScreen(OpenScreenEvent event) {
-        if (event.screen instanceof AbstractContainerScreen<?> containerScreen) {
-            currentScreen = containerScreen;
-        } else {
-            currentScreen = null;
-        }
     }
 
     @EventHandler
@@ -208,7 +188,8 @@ public class TerminalSolver extends Module {
 
         if (cancelMelody.get() && term.type.name().equals("MELODY")) return;
 
-        if (currentScreen == null) return;
+        Screen current = mc.screen;
+        if (!(current instanceof AbstractContainerScreen<?> containerScreen)) return;
 
         if (renderMode.get() == RenderMode.CustomGUI) {
             renderCustomGui(event, term);
@@ -216,7 +197,7 @@ public class TerminalSolver extends Module {
             return;
         }
 
-        if (currentScreen instanceof AbstractContainerScreenAccessor accessor) {
+        if (containerScreen instanceof AbstractContainerScreenAccessor accessor) {
             int leftPos = accessor.meteor$getLeftPos();
             int topPos = accessor.meteor$getTopPos();
 
@@ -244,28 +225,44 @@ public class TerminalSolver extends Module {
     }
 
     private void renderCustomGui(Render2DEvent event, TerminalHandler term) {
-        int windowSize = term.type.windowSize;
-        int rows = windowSize / 9;
-        int cols = 9;
-
         double scale = customTermSize.get();
         int slotSize = (int) Math.round(18 * scale);
         int slotGap = gap.get();
 
-        int gridWidth = cols * slotSize + (cols - 1) * slotGap;
-        int gridHeight = rows * slotSize + (rows - 1) * slotGap;
+        int minRow = Integer.MAX_VALUE, maxRow = Integer.MIN_VALUE;
+        int minCol = 9, maxCol = 0;
+        for (int i = 0; i < term.type.windowSize; i++) {
+            if (!isSlotRelevant(term.type, i)) continue;
+            int row = i / 9;
+            int col = i % 9;
+            if (row < minRow) minRow = row;
+            if (row > maxRow) maxRow = row;
+            if (col < minCol) minCol = col;
+            if (col > maxCol) maxCol = col;
+        }
+
+        int activeCols = maxCol - minCol + 1;
+        int activeRows = maxRow - minRow + 1;
+
+        int gridWidth = activeCols * slotSize + (activeCols - 1) * slotGap;
+        int gridHeight = activeRows * slotSize + (activeRows - 1) * slotGap;
 
         int originX = (event.screenWidth - gridWidth) / 2;
         int originY = (event.screenHeight - gridHeight) / 2;
 
-        int padding = 8;
-        event.graphics.fill(originX - padding, originY - padding, originX + gridWidth + padding, originY + gridHeight + padding, backgroundColor.get().getPacked());
+        int pad = 12;
+        event.graphics.fill(
+            originX - pad, originY - pad,
+            originX + gridWidth + pad, originY + gridHeight + pad,
+            backgroundColor.get().getPacked()
+        );
 
-        for (int i = 0; i < windowSize; i++) {
+        for (int i = 0; i < term.type.windowSize; i++) {
+            if (!isSlotRelevant(term.type, i)) continue;
             int row = i / 9;
             int col = i % 9;
-            int x = originX + col * (slotSize + slotGap);
-            int y = originY + row * (slotSize + slotGap);
+            int x = originX + (col - minCol) * (slotSize + slotGap);
+            int y = originY + (row - minRow) * (slotSize + slotGap);
 
             event.graphics.fill(x, y, x + slotSize, y + slotSize, new Color(60, 60, 60).getPacked());
 
@@ -281,6 +278,20 @@ public class TerminalSolver extends Module {
                 VanillaTextRenderer.INSTANCE.end();
             }
         }
+    }
+
+    private static boolean isSlotRelevant(TerminalTypes type, int slot) {
+        return switch (type) {
+            case RUBIX -> {
+                int row = slot / 9, col = slot % 9;
+                yield row >= 1 && row <= 3 && col >= 3 && col <= 5;
+            }
+            case MELODY -> {
+                int row = slot / 9;
+                yield row >= 1 && row <= 4;
+            }
+            default -> true;
+        };
     }
 
     private void renderDebug(Render2DEvent event, TerminalHandler term) {

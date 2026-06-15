@@ -6,12 +6,12 @@ import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.skyblock.terminal.TerminalUtils;
+import meteordevelopment.meteorclient.utils.skyblock.terminal.handlers.MelodyHandler;
 import meteordevelopment.meteorclient.utils.skyblock.terminal.handlers.TerminalHandler;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.world.inventory.ContainerInput;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class AutoTerms extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -24,11 +24,6 @@ public class AutoTerms extends Module {
     private final Setting<Integer> maxDelay = sgGeneral.add(new IntSetting.Builder()
         .name("max-delay").description("Maximum delay between clicks (ms).")
         .defaultValue(160).range(0, 500).sliderRange(0, 500).build()
-    );
-
-    private final Setting<Integer> firstClickDelay = sgGeneral.add(new IntSetting.Builder()
-        .name("first-click-delay").description("Delay before first click after opening terminal (ms).")
-        .defaultValue(350).range(0, 1000).sliderRange(0, 1000).build()
     );
 
     public enum OrderMode {
@@ -73,6 +68,16 @@ public class AutoTerms extends Module {
         .defaultValue(true).build()
     );
 
+    public enum MelodyMode {
+        Always,
+        EndsOnly
+    }
+
+    private final Setting<MelodyMode> melodyMode = sgGeneral.add(new EnumSetting.Builder<MelodyMode>()
+        .name("melody-mode").description("When to skip melody notes.")
+        .defaultValue(MelodyMode.Always).build()
+    );
+
     private final Random rng = new Random();
     private final Queue<Integer> clickQueue = new LinkedList<>();
     private int lastSlot = -1;
@@ -96,7 +101,7 @@ public class AutoTerms extends Module {
     @EventHandler
     private void onOpenScreen(OpenScreenEvent event) {
         reset();
-        nextClickTime = System.currentTimeMillis() + firstClickDelay.get();
+        scheduleNextClick();
     }
 
     @EventHandler
@@ -137,7 +142,7 @@ public class AutoTerms extends Module {
             List<Integer> clicks = new ArrayList<>(term.solution);
             Integer pick = pick(clicks, term);
             if (pick == null) return;
-            if (pick == lastSlot) return;
+            if (pick == lastSlot && !typeName.equals("RUBIX")) return;
             lastSlot = pick;
             int button = term.getClickButton(pick);
             executeClick(term, pick, button);
@@ -147,6 +152,10 @@ public class AutoTerms extends Module {
 
     private void handleMelody(TerminalHandler term) {
         if (System.currentTimeMillis() < nextClickTime) return;
+
+        if (term instanceof MelodyHandler mh) {
+            mh.endsOnly = melodyMode.get() == MelodyMode.EndsOnly;
+        }
 
         for (int s : term.solution) {
             if (s % 9 == 7) {
@@ -202,7 +211,7 @@ public class AutoTerms extends Module {
     private void executeClick(TerminalHandler term, int slot, int button) {
         if (mc.player == null) return;
         var menu = mc.player.containerMenu;
-        mc.gameMode.handleContainerInput(menu.containerId, slot, 2, ContainerInput.CLONE, mc.player);
+        mc.gameMode.handleContainerInput(menu.containerId, slot, button, ContainerInput.CLONE, mc.player);
         lastSlot = slot;
     }
 
