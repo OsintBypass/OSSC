@@ -1,8 +1,8 @@
 <div align="center">
-  <img src="https://cdn.discordapp.com/attachments/1323003949149589544/1514652334159040632/togif.gif?ex=6a3019e9&is=6a2ec869&hm=657a2d48ea456a5b4b28b0e6078e962442b5873d1d134551bc2c8dd81d26ac3d&" alt="meteor-client-logo" width="15%"/>
+  <img src="https://cdn.discordapp.com/attachments/1323003949149589544/1514652334159040632/togif.gif?ex=6a3019e9&is=6a2ec869&hm=6579d48ea456a5b4b28b0e6078e962442b5873d1d134551bc2c8dd81d26ac3d&" alt="ossc-logo" width="15%"/>
 
   <h1 style="margin-bottom: 5px;">OSSC</h1>
-  <p style="margin-top: 0; color: #555;">Open Source Skyblock Client, with Meteor Client as it's base.</p>
+  <p style="margin-top: 0; color: #555;">Open Source Skyblock Client, with OSSC as its base.</p>
 
   <a href="https://discord.gg/RKtg79f966">
     <img src="https://img.shields.io/discord/1323003949149589544?color=7289da&logo=discord&logoColor=white" alt="Discord"/>

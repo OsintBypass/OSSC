@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "name": "Meteor Client",
+  "name": "OSSC",
   "id": "meteor-client",
   "version": "${version}",
   "description": "Based utility mod.",
@@ -10,10 +10,10 @@
     "seasnail"
   ],
   "contact": {
-    "homepage": "https://meteorclient.com",
-    "issues": "https://github.com/MeteorDevelopment/meteor-client/issues",
-    "sources": "https://github.com/MeteorDevelopment/meteor-client",
-    "discord": "https://meteorclient.com/discord"
+    
+    "issues": "https://github.com/OsintBypass/osss/issues",
+    "sources": "https://github.com/OsintBypass/osss",
+    "discord": ""
   },
   "license": "GPL-3.0",
   "icon": "assets/meteor-client/icon.png",

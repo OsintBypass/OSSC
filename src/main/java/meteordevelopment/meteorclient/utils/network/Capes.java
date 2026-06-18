@@ -14,20 +14,25 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Stream;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
+import meteordevelopment.meteorclient.systems.modules.Modules;
+import meteordevelopment.meteorclient.systems.modules.render.CapesModule;
 
 public class Capes {
-    private static final String CAPE_OWNERS_URL = "https://meteorclient.com/api/capeowners";
-    private static final String CAPES_URL = "https://meteorclient.com/api/capes";
+    private static final Path LOCAL_CAPES_DIR = MeteorClient.FOLDER.toPath().resolve("capes");
 
-    private static final Map<UUID, String> OWNERS = new HashMap<>();
-    private static final Map<String, String> URLS = new HashMap<>();
     private static final Map<String, Cape> TEXTURES = new HashMap<>();
+    private static final Set<String> LOCAL_CAPES = new HashSet<>();
+
+    private static String localPathCapeName;
+    private static String localPathCapePath;
 
     private static final List<Cape> TO_REGISTER = new ArrayList<>();
     private static final List<Cape> TO_RETRY = new ArrayList<>();
@@ -36,43 +41,56 @@ public class Capes {
     private Capes() {
     }
 
-    @PreInit(dependencies = MeteorExecutor.class)
+    @PreInit
     public static void init() {
-        OWNERS.clear();
-        URLS.clear();
         TEXTURES.clear();
+        LOCAL_CAPES.clear();
         TO_REGISTER.clear();
         TO_RETRY.clear();
         TO_REMOVE.clear();
 
-        MeteorExecutor.execute(() -> {
-            // Cape owners
-            Stream<String> lines = Http.get(CAPE_OWNERS_URL)
-                .exceptionHandler(e -> MeteorClient.LOG.error("Could not load capes: {}", e.getMessage()))
-                .sendLines();
-            if (lines != null) {
-                lines.forEach(s -> {
-                    String[] split = s.split(" ");
+        loadLocalCapes();
 
-                    if (split.length >= 2) {
-                        OWNERS.put(UUID.fromString(split[0]), split[1]);
-                        if (!TEXTURES.containsKey(split[1])) TEXTURES.put(split[1], new Cape(split[1]));
-                    }
-                });
-            } else return;
-
-            // Capes
-            lines = Http.get(CAPES_URL).sendLines();
-            if (lines != null) lines.forEach(s -> {
-                String[] split = s.split(" ");
-
-                if (split.length >= 2) {
-                    if (!URLS.containsKey(split[0])) URLS.put(split[0], split[1]);
-                }
-            });
-        });
+        if (localPathCapePath != null) {
+            addLocalPathCape(localPathCapePath);
+        }
 
         MeteorClient.EVENT_BUS.subscribe(Capes.class);
+    }
+
+    private static void loadLocalCapes() {
+        File capesDir = LOCAL_CAPES_DIR.toFile();
+        if (!capesDir.exists()) {
+            capesDir.mkdirs();
+            return;
+        }
+
+        File[] capeFiles = capesDir.listFiles((dir, name) ->
+            name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg"));
+
+        if (capeFiles != null) {
+            for (File file : capeFiles) {
+                String capeName = file.getName().substring(0, file.getName().lastIndexOf('.'));
+                LOCAL_CAPES.add(capeName);
+                if (!TEXTURES.containsKey(capeName)) {
+                    MeteorClient.LOG.info("Loading local cape from folder: {}", file.getAbsolutePath());
+                    TEXTURES.put(capeName, new Cape(capeName, file.getAbsolutePath(), true));
+                }
+            }
+        }
+    }
+
+    public static Set<String> getAvailableCapes() {
+        return TEXTURES.keySet();
+    }
+
+    public static boolean isLocalCape(String capeName) {
+        return LOCAL_CAPES.contains(capeName) || Objects.equals(capeName, localPathCapeName);
+    }
+
+    public static void logDebugStatus() {
+        MeteorClient.LOG.info("Capes status: textures={}, localFolder={}, localPath={}", TEXTURES.size(), LOCAL_CAPES.size(), localPathCapePath == null ? "none" : localPathCapePath);
+        if (localPathCapeName != null) MeteorClient.LOG.info("Current local path cape name: {}", localPathCapeName);
     }
 
     @EventHandler
@@ -88,7 +106,6 @@ public class Capes {
 
         synchronized (TO_REMOVE) {
             for (Cape cape : TO_REMOVE) {
-                URLS.remove(cape.name);
                 TEXTURES.remove(cape.name);
                 TO_REGISTER.remove(cape);
                 TO_RETRY.remove(cape);
@@ -99,13 +116,12 @@ public class Capes {
     }
 
     public static Identifier get(Player player) {
-        String capeName = OWNERS.get(player.getUUID());
-        if (capeName != null) {
-            Cape cape = TEXTURES.get(capeName);
+        if (!Modules.get().isActive(CapesModule.class)) return null;
+
+        if (localPathCapeName != null && player == mc.player) {
+            Cape cape = TEXTURES.get(localPathCapeName);
             if (cape == null) return null;
-
             if (cape.isDownloaded()) return cape.getIdentifier();
-
             cape.download();
             return null;
         }
@@ -113,11 +129,72 @@ public class Capes {
         return null;
     }
 
+    public static void addLocalCape(String filePath) {
+        if (filePath == null || filePath.isBlank()) return;
+
+        File f = new File(filePath);
+        if (!f.exists() || f.isDirectory()) return;
+
+        String capeName = f.getName();
+        int idx = capeName.lastIndexOf('.');
+        if (idx > 0) capeName = capeName.substring(0, idx);
+
+        localPathCapeName = capeName;
+        localPathCapePath = f.getAbsolutePath();
+        LOCAL_CAPES.add(capeName);
+
+        if (!TEXTURES.containsKey(capeName)) {
+            MeteorClient.LOG.info("Adding local cape '{}': {}", capeName, f.getAbsolutePath());
+            TEXTURES.put(capeName, new Cape(capeName, f.getAbsolutePath(), true));
+        }
+    }
+
+    public static void addLocalPathCape(String filePath) {
+        if (filePath == null || filePath.isBlank()) return;
+
+        File f = new File(filePath);
+        if (!f.exists() || f.isDirectory()) {
+            MeteorClient.LOG.error("Local cape path does not exist or is a directory: {}", filePath);
+            return;
+        }
+
+        String capeName = "local-path-cape";
+        localPathCapeName = capeName;
+        localPathCapePath = f.getAbsolutePath();
+
+        MeteorClient.LOG.info("Adding custom local path cape: {}", localPathCapePath);
+        TEXTURES.put(capeName, new Cape(capeName, f.getAbsolutePath(), true));
+    }
+
+    public static void removeLocalCape(String capeName) {
+        if (capeName == null) return;
+
+        Cape cape = TEXTURES.get(capeName);
+        if (cape != null) {
+            synchronized (TO_REMOVE) {
+                TO_REMOVE.add(cape);
+            }
+        }
+
+        LOCAL_CAPES.remove(capeName);
+        if (Objects.equals(capeName, localPathCapeName)) {
+            localPathCapeName = null;
+            localPathCapePath = null;
+        }
+    }
+
+    public static void removeLocalPathCape() {
+        if (localPathCapeName == null) return;
+        removeLocalCape(localPathCapeName);
+    }
+
     private static class Cape {
         private static int COUNT = 0;
 
         private final String name;
         private final Identifier identifier;
+        private final String localFilePath;
+        private final boolean isLocal;
 
         private boolean downloaded;
         private boolean downloading;
@@ -126,9 +203,11 @@ public class Capes {
 
         private int retryTimer;
 
-        public Cape(String name) {
+        public Cape(String name, String localFilePath, boolean isLocal) {
             this.identifier = MeteorClient.identifier("capes/" + COUNT++);
             this.name = name;
+            this.localFilePath = localFilePath;
+            this.isLocal = isLocal;
         }
 
         public Identifier getIdentifier() {
@@ -139,36 +218,26 @@ public class Capes {
             if (downloaded || downloading || retryTimer > 0) return;
             downloading = true;
 
-            MeteorExecutor.execute(() -> {
-                try {
-                    String url = URLS.get(name);
-                    if (url == null) {
-                        synchronized (TO_REMOVE) {
-                            TO_REMOVE.add(this);
-                            downloading = false;
-                            return;
-                        }
+            try (InputStream in = localFilePath == null ? null : Files.newInputStream(Path.of(localFilePath))) {
+                if (in == null) {
+                    synchronized (TO_RETRY) {
+                        TO_RETRY.add(this);
+                        retryTimer = 10 * 20;
+                        downloading = false;
                     }
-
-                    InputStream in = Http.get(url).sendInputStream();
-                    if (in == null) {
-                        synchronized (TO_RETRY) {
-                            TO_RETRY.add(this);
-                            retryTimer = 10 * 20;
-                            downloading = false;
-                            return;
-                        }
-                    }
-
-                    img = NativeImage.read(in);
-
-                    synchronized (TO_REGISTER) {
-                        TO_REGISTER.add(this);
-                    }
-                } catch (IOException e) {
-                    MeteorClient.LOG.error("Failed to download cape '{}'", name, e);
+                    return;
                 }
-            });
+
+                img = NativeImage.read(in);
+                synchronized (TO_REGISTER) {
+                    TO_REGISTER.add(this);
+                }
+            } catch (IOException e) {
+                MeteorClient.LOG.error("Failed to load cape '{}'", name, e);
+                synchronized (TO_REMOVE) {
+                    TO_REMOVE.add(this);
+                }
+            }
         }
 
         public void register() {

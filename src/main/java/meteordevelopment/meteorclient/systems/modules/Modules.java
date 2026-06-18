@@ -25,6 +25,7 @@ import meteordevelopment.meteorclient.systems.modules.movement.Flight;
 import meteordevelopment.meteorclient.systems.modules.player.FakePlayer;
 import meteordevelopment.meteorclient.systems.modules.player.NameProtect;
 import meteordevelopment.meteorclient.systems.modules.render.Fullbright;
+import meteordevelopment.meteorclient.systems.modules.render.CapesModule;
 import meteordevelopment.meteorclient.systems.modules.render.NoRender;
 import meteordevelopment.meteorclient.systems.modules.skyblock.*;
 import meteordevelopment.meteorclient.systems.modules.world.Ambience;
@@ -407,6 +408,7 @@ public class Modules extends System<Modules> {
 
     private void initRender() {
         add(new Fullbright());
+        add(new CapesModule());
         add(new NoRender());
     }
 

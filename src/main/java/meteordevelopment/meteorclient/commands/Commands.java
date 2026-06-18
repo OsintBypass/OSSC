@@ -44,6 +44,7 @@ public class Commands {
         add(new EnderChestCommand());
         add(new ProfilesCommand());
         add(new ReloadCommand());
+        add(new CapesCommand());
         add(new ResetCommand());
         add(new SayCommand());
         add(new ServerCommand());
