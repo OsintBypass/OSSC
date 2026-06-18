@@ -33,7 +33,6 @@
   </p>
 </blockquote>
 
-<h2 style="color: #cf222e; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em;">If you feel as if I'm a loser for utilizing ai, then feel free to harass me on discord. Then seek professional evaluation since you are clearly having mental issues, because no sane person should have that big of a problem with such a small thing.</h2>
 
 <h2 style="border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; margin-top: 24px;">Usage</h2>
 
