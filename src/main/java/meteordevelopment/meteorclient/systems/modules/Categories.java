@@ -18,6 +18,7 @@ public class Categories {
     public static final Category World = new Category("World", () -> DisplayItemUtils.toStack(Items.GRASS_BLOCK));
     public static final Category Misc = new Category("Misc", () -> DisplayItemUtils.toStack(Items.LAVA_BUCKET));
     public static final Category Skyblock = new Category("Skyblock", () -> DisplayItemUtils.toStack(Items.TRIPWIRE_HOOK));
+    public static final Category Rift = new Category("Rift", () -> DisplayItemUtils.toStack(Items.ENDER_EYE));
     public static final Category Developer = new Category("Developer", () -> DisplayItemUtils.toStack(Items.COMMAND_BLOCK));
 
     public static boolean REGISTERING;
@@ -33,6 +34,7 @@ public class Categories {
         Modules.registerCategory(World);
         Modules.registerCategory(Misc);
         Modules.registerCategory(Skyblock);
+        Modules.registerCategory(Rift);
         Modules.registerCategory(Developer);
 
         // Addons

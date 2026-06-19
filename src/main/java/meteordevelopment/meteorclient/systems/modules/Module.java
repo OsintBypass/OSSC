@@ -12,6 +12,7 @@ import meteordevelopment.meteorclient.gui.GuiTheme;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.settings.Settings;
 import meteordevelopment.meteorclient.systems.config.Config;
+import meteordevelopment.meteorclient.systems.modules.misc.Notifications;
 import meteordevelopment.meteorclient.utils.Utils;
 import meteordevelopment.meteorclient.utils.misc.ISerializable;
 import meteordevelopment.meteorclient.utils.misc.Keybind;
@@ -118,9 +119,17 @@ public abstract class Module implements ISerializable<Module>, Comparable<Module
     }
 
     public void sendToggledMsg() {
-        if (Config.get().chatFeedback.get() && chatFeedback) {
+        Notifications notifications = Notifications.get();
+        boolean shouldShowChat = (notifications == null || notifications.showChat()) && Config.get().chatFeedback.get() && chatFeedback;
+        boolean shouldShowToast = notifications != null && notifications.moduleUpdates.get() && notifications.showToasts();
+
+        if (shouldShowChat) {
             ChatUtils.forceNextPrefixClass(getClass());
             ChatUtils.sendMsg(this.hashCode(), ChatFormatting.GRAY, "Toggled (highlight)%s(default) %s(default).", title, isActive() ? ChatFormatting.GREEN + "on" : ChatFormatting.RED + "off");
+        }
+
+        if (shouldShowToast) {
+            notifications.displayToast(title, isActive() ? "Enabled" : "Disabled");
         }
     }
 

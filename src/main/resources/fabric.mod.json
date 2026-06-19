@@ -1,18 +1,16 @@
 {
   "schemaVersion": 1,
   "name": "OSSC",
-  "id": "meteor-client",
+  "id": "ossc",
   "version": "${version}",
-  "description": "Based utility mod.",
+  "description": "OSSC is a simple utility mod for Minecraft.",
   "authors": [
-    "MineGame159",
-    "squidoodly",
-    "seasnail"
+    "OsintBypass"
   ],
   "contact": {
     
-    "issues": "https://github.com/OsintBypass/osss/issues",
-    "sources": "https://github.com/OsintBypass/osss",
+    "issues": "https://github.com/OsintBypass/ossc/issues",
+    "sources": "https://github.com/OsintBypass/ossc",
     "discord": ""
   },
   "license": "GPL-3.0",

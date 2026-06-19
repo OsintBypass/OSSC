@@ -27,6 +27,7 @@ import meteordevelopment.meteorclient.systems.modules.player.NameProtect;
 import meteordevelopment.meteorclient.systems.modules.render.Fullbright;
 import meteordevelopment.meteorclient.systems.modules.render.CapesModule;
 import meteordevelopment.meteorclient.systems.modules.render.NoRender;
+import meteordevelopment.meteorclient.systems.modules.rift.RiftPlaceholderModule;
 import meteordevelopment.meteorclient.systems.modules.skyblock.*;
 import meteordevelopment.meteorclient.systems.modules.world.Ambience;
 import meteordevelopment.meteorclient.utils.Utils;
@@ -75,6 +76,7 @@ public class Modules extends System<Modules> {
         initWorld();
         initMisc();
         initSkyblock();
+        initRift();
         initDeveloper();
     }
 
@@ -402,6 +404,10 @@ public class Modules extends System<Modules> {
         add(new TerminalSimulator());
     }
 
+    private void initRift() {
+        add(new RiftPlaceholderModule());
+    }
+
     private void initDeveloper() {
         add(new Flight());
     }
@@ -417,9 +423,11 @@ public class Modules extends System<Modules> {
     }
 
     private void initMisc() {
+        add(new Notifications());
         add(new AntiPacketKick());
         add(new AutoReconnect());
         add(new DiscordPresence());
+        add(new AntiCheatModule());
         add(new PacketCanceller());
         add(new PacketLogger());
         add(new ServerSpoof());

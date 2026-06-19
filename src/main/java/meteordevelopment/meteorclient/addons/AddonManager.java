@@ -46,7 +46,7 @@ public class AddonManager {
                 }
             };
 
-            ModMetadata metadata = FabricLoader.getInstance().getModContainer(MeteorClient.MOD_ID).get().getMetadata();
+            ModMetadata metadata = FabricLoader.getInstance().getModContainer(MeteorClient.MOD_METADATA_ID).get().getMetadata();
 
             MeteorClient.ADDON.name = metadata.getName();
             MeteorClient.ADDON.authors = new String[metadata.getAuthors().size()];

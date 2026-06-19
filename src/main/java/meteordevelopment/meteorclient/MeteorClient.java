@@ -49,6 +49,7 @@ import java.lang.invoke.MethodHandles;
 
 public class MeteorClient implements ClientModInitializer {
     public static final String MOD_ID = "meteor-client";
+    public static final String MOD_METADATA_ID = "ossc";
     public static final ModMetadata MOD_META;
     public static final String NAME;
     public static final Version VERSION;
@@ -63,7 +64,7 @@ public class MeteorClient implements ClientModInitializer {
     public static final Logger LOG;
 
     static {
-        MOD_META = FabricLoader.getInstance().getModContainer(MOD_ID).orElseThrow().getMetadata();
+        MOD_META = FabricLoader.getInstance().getModContainer(MOD_METADATA_ID).orElseThrow().getMetadata();
 
         NAME = MOD_META.getName();
         LOG = LoggerFactory.getLogger(NAME);
@@ -75,7 +76,9 @@ public class MeteorClient implements ClientModInitializer {
         if (versionString.equals("${version}")) versionString = "0.0.0";
 
         VERSION = new Version(versionString);
-        BUILD_NUMBER = MOD_META.getCustomValue(MeteorClient.MOD_ID + ":build_number").getAsString();
+        BUILD_NUMBER = MOD_META.containsCustomValue(MeteorClient.MOD_ID + ":build_number")
+            ? MOD_META.getCustomValue(MeteorClient.MOD_ID + ":build_number").getAsString()
+            : "";
     }
 
     @Override
