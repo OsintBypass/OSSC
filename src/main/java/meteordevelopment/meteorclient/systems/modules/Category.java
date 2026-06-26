@@ -13,15 +13,21 @@ public class Category {
     public final String name;
     public final Supplier<ItemStack> icon;
     private final int nameHash;
+    public final boolean isDeveloper;
 
     public Category(String name, Supplier<ItemStack> icon) {
+        this(name, icon, false);
+    }
+
+    public Category(String name, Supplier<ItemStack> icon, boolean isDeveloper) {
         this.name = name;
         this.nameHash = name.hashCode();
         this.icon = icon == null ? () -> ItemStack.EMPTY : icon;
+        this.isDeveloper = isDeveloper;
     }
 
     public Category(String name) {
-        this(name, null);
+        this(name, null, false);
     }
 
     @Override

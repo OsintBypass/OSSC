@@ -136,7 +136,7 @@ public class PacketLogger extends Module {
     private @Nullable LocalDateTime sessionStartTime;
 
     public PacketLogger() {
-        super(Categories.Misc, "packet-logger", "Allows you to log certain packets.");
+        super(Categories.Developer, "packet-logger", "Allows you to log certain packets.");
         runInMainMenu = true;
     }
 

@@ -48,7 +48,7 @@ public class MelodyHandler extends TerminalHandler {
 
         List<Integer> result = new ArrayList<>();
         if (greenPos != -1 && current == correct && button >= 0 && button <= 3) {
-            if (!endsOnly || current == 0 || current == 4) {
+            if (!endsOnly || (current != 0 && current != 4)) {
                 result.add(16 + button * 9);
             }
         }

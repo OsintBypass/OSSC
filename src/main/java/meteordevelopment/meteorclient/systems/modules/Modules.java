@@ -20,10 +20,12 @@ import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.System;
 import meteordevelopment.meteorclient.systems.Systems;
 import meteordevelopment.meteorclient.systems.config.Config;
+import meteordevelopment.meteorclient.systems.modules.isle.DailyHelper;
 import meteordevelopment.meteorclient.systems.modules.misc.*;
 import meteordevelopment.meteorclient.systems.modules.movement.Flight;
 import meteordevelopment.meteorclient.systems.modules.player.FakePlayer;
 import meteordevelopment.meteorclient.systems.modules.player.NameProtect;
+import meteordevelopment.meteorclient.systems.modules.render.EtherwarpHelper;
 import meteordevelopment.meteorclient.systems.modules.render.Fullbright;
 import meteordevelopment.meteorclient.systems.modules.render.CapesModule;
 import meteordevelopment.meteorclient.systems.modules.render.NoRender;
@@ -78,6 +80,8 @@ public class Modules extends System<Modules> {
         initSkyblock();
         initRift();
         initDeveloper();
+        initHiddenDeprecated();
+        initIsle();
     }
 
     @Override
@@ -105,7 +109,10 @@ public class Modules extends System<Modules> {
     }
 
     public static Iterable<Category> loopCategories() {
-        return CATEGORIES;
+        if (mc != null && mc.getUser() != null && mc.getUser().getName().equals("IWishIWasPretty")) {
+            return CATEGORIES;
+        }
+        return () -> CATEGORIES.stream().filter(c -> !c.isDeveloper).iterator();
     }
 
     @SuppressWarnings("unchecked")
@@ -409,13 +416,22 @@ public class Modules extends System<Modules> {
     }
 
     private void initDeveloper() {
+        add(new AntiCheatModule());
+        add(new AntiPacketKick());
+        add(new PacketCanceller());
+        add(new PacketLogger());
+        add(new CapesModule());
         add(new Flight());
+    }
+
+    private void initHiddenDeprecated() {
+
     }
 
     private void initRender() {
         add(new Fullbright());
-        add(new CapesModule());
         add(new NoRender());
+        add(new EtherwarpHelper());
     }
 
     private void initWorld() {
@@ -424,13 +440,14 @@ public class Modules extends System<Modules> {
 
     private void initMisc() {
         add(new Notifications());
-        add(new AntiPacketKick());
         add(new AutoReconnect());
         add(new DiscordPresence());
-        add(new AntiCheatModule());
-        add(new PacketCanceller());
-        add(new PacketLogger());
         add(new ServerSpoof());
         add(new SoundBlocker());
+    }
+
+    private void initIsle() {
+
+        add(new DailyHelper());
     }
 }

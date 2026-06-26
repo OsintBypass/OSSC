@@ -25,7 +25,7 @@ public class Fullbright extends Module {
     public final Setting<Mode> mode = sgGeneral.add(new EnumSetting.Builder<Mode>()
         .name("mode")
         .description("The mode to use for Fullbright.")
-        .defaultValue(Mode.Gamma)
+        .defaultValue(Mode.Potion)
         .onChanged(mode -> {
             if (isActive()) {
                 if (mode != Mode.Potion) disableNightVision();
@@ -79,9 +79,7 @@ public class Fullbright extends Module {
         return minimumLightLevel.get();
     }
 
-    public boolean getGamma() {
-        return isActive() && mode.get() == Mode.Gamma;
-    }
+
 
     @EventHandler
     private void onTick(TickEvent.Post event) {
@@ -103,7 +101,6 @@ public class Fullbright extends Module {
     }
 
     public enum Mode {
-        Gamma,
         Potion,
         Luminance
     }

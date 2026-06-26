@@ -48,6 +48,6 @@ public class CapesModule extends Module {
     );
 
     public CapesModule() {
-        super(Categories.Render, "capes", "Shows Meteor capes.");
+        super(Categories.Developer, "capes", "Shows Meteor capes.");
     }
 }

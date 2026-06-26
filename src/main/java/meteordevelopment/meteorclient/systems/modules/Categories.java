@@ -19,7 +19,9 @@ public class Categories {
     public static final Category Misc = new Category("Misc", () -> DisplayItemUtils.toStack(Items.LAVA_BUCKET));
     public static final Category Skyblock = new Category("Skyblock", () -> DisplayItemUtils.toStack(Items.TRIPWIRE_HOOK));
     public static final Category Rift = new Category("Rift", () -> DisplayItemUtils.toStack(Items.ENDER_EYE));
-    public static final Category Developer = new Category("Developer", () -> DisplayItemUtils.toStack(Items.COMMAND_BLOCK));
+    public static final Category Developer = new Category("Developer", () -> DisplayItemUtils.toStack(Items.COMMAND_BLOCK), true);
+    public static final Category HiddenDeprecated = new Category("Hidden/Deprecated", () -> DisplayItemUtils.toStack(Items.BARRIER));
+    public static final Category Isle = new Category("Isle", () -> DisplayItemUtils.toStack(Items.MAGMA_BLOCK));
 
     public static boolean REGISTERING;
 
@@ -36,6 +38,8 @@ public class Categories {
         Modules.registerCategory(Skyblock);
         Modules.registerCategory(Rift);
         Modules.registerCategory(Developer);
+        //Modules.registerCategory(HiddenDeprecated);
+        Modules.registerCategory(Isle);
 
         // Addons
         AddonManager.ADDONS.forEach(MeteorAddon::onRegisterCategories);
