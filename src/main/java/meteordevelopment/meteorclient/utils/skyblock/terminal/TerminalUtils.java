@@ -51,7 +51,7 @@ public class TerminalUtils {
                     break;
                 }
             }
-            if (type != null) {
+            if (type != null) {p
                 if (currentTerm != null && !currentTerm.isClicked && currentTerm.windowCount <= 2) {
                     leaveTerm();
                 }

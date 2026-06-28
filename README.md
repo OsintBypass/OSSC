@@ -45,11 +45,12 @@
 <h3>Installation</h3>
 <p>Follow the <a href="https://meteorclient.com/faq/installation" style="color: #0969da; text-decoration: none;">guide</a> on the wiki.</p>
 
+<p>For information on usage of the notification module check out [Notification module guide](NOTIFICATIONS_MODULE_GUIDE.md)
+</p>
 <h2 style="border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; margin-top: 24px;">Contributions</h2>
 <p>I don't care what you do, just don't add a rat, of course I'll read through any pull-requests.<br>
 I will of course not accept anything that has potential to be harmful (Obfuscation, external connections etc.)</p>
 
-For information on usage of the notification module check out [Notification module guide](NOTIFICATIONS_MODULE_GUIDE.md)
 
 <h2 style="border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; margin-top: 24px;">Bugs and Suggestions</h2>
 <p>Submit a bug report through github and I'll try to figure it out. Although success might not be a given.</p>

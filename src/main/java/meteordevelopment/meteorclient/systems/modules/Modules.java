@@ -422,6 +422,7 @@ public class Modules extends System<Modules> {
         add(new PacketLogger());
         add(new CapesModule());
         add(new Flight());
+        add(new EtherwarpHelper());
     }
 
     private void initHiddenDeprecated() {
@@ -431,7 +432,7 @@ public class Modules extends System<Modules> {
     private void initRender() {
         add(new Fullbright());
         add(new NoRender());
-        add(new EtherwarpHelper());
+
     }
 
     private void initWorld() {
